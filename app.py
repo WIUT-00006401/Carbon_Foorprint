@@ -243,7 +243,7 @@ def evaluate_and_suggest(category_contributions):
             suggestions = suggestion_functions[category](over_limit_amount)
             for suggestion in suggestions:
                 st.markdown(f"- {suggestion}")
-        else
+        else:
             st.info("There is no exceeding amount of emission among factors for suggestion evaluations")
 
 
