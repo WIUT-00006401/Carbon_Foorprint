@@ -244,7 +244,7 @@ def evaluate_and_suggest(category_contributions):
             for suggestion in suggestions:
                 st.markdown(f"- {suggestion}")
         else:
-            st.info("There is no exceeding amount of emission among factors for suggestion evaluations")
+            st.info("There is no exceeding amount of {category} emission among factors for suggestion evaluations")
 
 
 # Present the results
