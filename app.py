@@ -1,17 +1,13 @@
 import streamlit as st
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import numpy as np
-import pandas as pd
 
-from energy import Energy
-from waste import Waste
-from travel import Travel
-from minimize_emission import Minimize_Emission
+from categories.energy import Energy
+from categories.waste import Waste
+from categories.travel import Travel
+from mitigation_strategy import Minimize_Emission
+from visualizations.pie_chart_visualization import PieChartVisualizer
+from visualizations.table_visualization import TableVisualizer
 
 from average_limit import AVERAGE_LIMIT
-
-
 
 
 # Main page parameters
@@ -20,6 +16,7 @@ st.title("Carbon Footprint Calculator")
 
 st.markdown("***")
 st.markdown("This project is created as a part of the assignment from Computer Programming module in GISMA University of Applied Sciences. The primary functionality of this tool revolves around enabling users to input data concerning their energy consumption, waste generation, and travel habits. Upon processing this data, the tool calculates the overall carbon footprint and generates detailed reports. These reports highlight areas where emissions exceed recommended limits and offer suggestions for reducing their carbon footprint. From a technical standpoint, the project utilizes a combination of Python for backend calculations and Streamlit for creating an interactive web interface.")
+st.markdown("Github Link: https://github.com/WIUT-00006401/Carbon_Foorprint")
 st.markdown("Student ID: GH1028483")
 st.markdown("***")
 
@@ -70,7 +67,6 @@ with col8:
 with col9:
     plastic_recycled = st.slider("♻️ Recycled", 0, 100, key="plastic_recycled_input")
 
-
 st.markdown("***")
 
 # Travel
@@ -85,7 +81,6 @@ with col11:
 with col12:
     travel_car = st.number_input("🚘 By Car", 0, key="travel_car")
     
-
 st.markdown("***")
 
 
@@ -114,110 +109,15 @@ travel_emission = travel.calculate_emission()
 # Sum up the results
 total_emission = energy_emission + waste_emission + travel_emission
 
+# passing inputs for visualisations
+pie_chart_visualizer = PieChartVisualizer(pl_electricity, pl_gas, pl_fuel, pl_organic, pl_paper, pl_plastic, pl_plane, pl_train, pl_car)
+table_visualizer = TableVisualizer(pl_electricity, pl_gas, pl_fuel, pl_organic, pl_paper, pl_plastic, pl_plane, pl_train, pl_car)
 
-def results_pie_chart():
-    # st.title("Nested Pie Chart Result with Matplotlib")
-    fig, ax = plt.subplots()
-    ax.set_title("Customizing pie chart")
 
-    size = 0.25
-    vals = np.array([[pl_electricity, pl_gas, pl_fuel], [pl_organic, pl_paper, pl_plastic], [pl_plane, pl_train, pl_car]])
-    
-    total = vals.sum()
 
-    # Colors of pie chart
-    cmap = plt.colormaps["tab20c"]
-    outer_colors = cmap(np.array([1, 5, 9]))
-    inner_colors = cmap(np.array([1, 2, 3, 5, 6, 7, 9, 10, 11]))
-
-    # # Labels for the outer and inner rings
-    labels_outer = ['Energy', 'Waste', 'Travel']
-    labels_inner = ['Electricity', 'Gas', 'Fuel', 'Organic', 'Paper', 'Plastic', 'Plane', 'Train', 'Car']
-    # labels_inner = ['💡', '🔥', '⛽️', '🍎', '📰', '🍶', '✈️', '🚝', '🚘']
-
-    percentages_inner = [f"{label} ({val/total*100:.1f}%)" for label, val in zip(labels_inner, vals.flatten())]
-
-    # Plotting the inner ring with colors
-    ax.pie(vals.sum(axis=1), 
-        radius=0.8, 
-        colors=outer_colors, 
-        labels=labels_outer,
-        wedgeprops=dict(width=size, edgecolor='w'), 
-        autopct='%1.1f%%', 
-        pctdistance=0.85, 
-        startangle=140)
-
-    # Plotting the inner ring with colors
-    ax.pie(vals.flatten(), 
-        radius=0.8-size, 
-        colors=inner_colors, 
-        #labels=labels_inner,
-        wedgeprops=dict(width=size, edgecolor='w'), 
-        #autopct='%1.0f%%', 
-        pctdistance=0.75, 
-        startangle=140)
-    
-    inner_patches = [mpatches.Patch(color=inner_colors[i], label=label) for i, label in enumerate(percentages_inner)]
-
-    # Adding the legend to the plot
-    plt.legend(handles=inner_patches, bbox_to_anchor=(1.05, 1), loc='upper left', title="Categories")
-
-    # Adjusting layout to make room for the legend
-    plt.tight_layout()
-
-    # Equal aspect ratio ensuring that pie is drawn as a circle.
-    ax.set(aspect="equal")
-    st.pyplot(fig)
-    
-
-    
-def results_table():
-
-    column_labels = ['', 'Emission Factors', 'CO2 in kg', 'Average limit in kg', 'Difference']
-    myData = [
-        ['💡', '🔥', '⛽️', '🍎', '📰', '🍶', '✈️', '🚝', '🚘'],
-        ['Electricity', 'Gas', 'Fuel', 'Organic', 'Paper', 'Plastic', 'Plane', 'Train', 'Car'],
-        [pl_electricity, pl_gas, pl_fuel, pl_organic, pl_paper, pl_plastic, pl_plane, pl_train, pl_car],
-        [AVERAGE_LIMIT["Energy_Electricity"], AVERAGE_LIMIT["Energy_Gas"], AVERAGE_LIMIT["Energy_Fuel"], 
-         AVERAGE_LIMIT["Waste_Organic"], AVERAGE_LIMIT["Waste_Paper"], AVERAGE_LIMIT["Waste_Plastic"],
-         AVERAGE_LIMIT["Travel_Plane"], AVERAGE_LIMIT["Travel_Train"], AVERAGE_LIMIT["Travel_Car"]]
-    ]
-    
-    myData.append([round((myData[2][i] - myData[3][i]), 2) for i in range(len(myData[0]))])
-    
-    data_transposed = list(map(list, zip(*myData)))  # Transpose operation
-
-    # Creating a DataFrame
-    df = pd.DataFrame(data_transposed, columns=column_labels)
-    
-    html = """
-    <style>
-        .dataframe {width: 100%; border-collapse: collapse;}
-        .dataframe th, .dataframe td {text-align: left; border: 1px solid black;}
-        .dataframe th {background-color: #f0f0f0;}
-        .negative {background-color: #ffcccc;}
-    </style>
-    <table class="dataframe"><thead><tr>
-    """
-
-    # Adding headers to the HTML string
-    for col in df.columns:
-        html += f'<th>{col}</th>'
-    html += '</tr></thead><tbody>'
-
-    # Add the data rows to the HTML string
-    for index, row in df.iterrows():
-        # Applying a 'negative' class to rows where the last column value is less than 0
-        row_class = "negative" if row['Difference'] > 0.0 else ''
-        html += f'<tr class="{row_class}">'
-        for value in row:
-            html += f"<td>{value}</td>"
-        html += "</tr>"
-
-    html += "</tbody></table>"
-    
-    st.markdown(html, unsafe_allow_html=True)
-
+average_energy_limit = AVERAGE_LIMIT['Energy_Electricity'] + AVERAGE_LIMIT['Energy_Gas'] + AVERAGE_LIMIT['Energy_Fuel']
+average_waste_limit = AVERAGE_LIMIT['Waste_Organic'] + AVERAGE_LIMIT['Waste_Paper'] + AVERAGE_LIMIT['Waste_Plastic']
+average_travel_limit = AVERAGE_LIMIT['Travel_Plane'] + AVERAGE_LIMIT['Travel_Train'] + AVERAGE_LIMIT['Travel_Car']
 
 
 suggestion_functions = {
@@ -226,15 +126,12 @@ suggestion_functions = {
     'travel': Minimize_Emission.travel_suggestions
 }
 
-average_energy_limit = AVERAGE_LIMIT['Energy_Electricity'] + AVERAGE_LIMIT['Energy_Gas'] + AVERAGE_LIMIT['Energy_Fuel']
-average_waste_limit = AVERAGE_LIMIT['Waste_Organic'] + AVERAGE_LIMIT['Waste_Paper'] + AVERAGE_LIMIT['Waste_Plastic']
-average_travel_limit = AVERAGE_LIMIT['Travel_Plane'] + AVERAGE_LIMIT['Travel_Train'] + AVERAGE_LIMIT['Travel_Car']
-
 category_contributions = {
     'energy': energy_emission - average_energy_limit,
     'waste': waste_emission - average_waste_limit,
     'travel': travel_emission - average_travel_limit
 }
+
 
 def evaluate_and_suggest(category_contributions):
     for category, over_limit_amount in category_contributions.items():
@@ -264,7 +161,7 @@ if st.button("Calculate CO2 Emissions"):
     with col4:
         st.subheader("Total Carbon Footprint")
         st.info(f"🌎 Total Carbon footprint is: {round((total_emission), 2)} kg CO2 per year")
-        # st.warning("Pass")
+        
         if total_emission <= 9430.36:
             st.info("🌳 Carbon emission is within the limit")
             total_difference = 9430.36 - total_emission
@@ -275,13 +172,12 @@ if st.button("Calculate CO2 Emissions"):
             st.info(f"Exceeding amount is: {round(total_difference, 2)} kg")
             
     try:
-        results_pie_chart()
+        pie_chart_visualizer.results_pie_chart()
     except Exception as e:
         st.error(f"Failed to generate the pie chart due to incorrect user input")  
         st.write("At least one user input should be generated for representing pie chart ")  
-        
-    # results_pie_chart()
-    results_table()
+    
+    table_visualizer.results_table()
     
     st.markdown("***")
     
