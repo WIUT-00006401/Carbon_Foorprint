@@ -3,3 +3,4 @@ Run the project on:
 https://thecarbonfootprintcalculator.streamlit.app/
 
 ![image](https://github.com/WIUT-00006401/Carbon_Foorprint/assets/44471488/50ab2452-665d-41c3-b3df-91568efd8bd8)
+![image](https://github.com/WIUT-00006401/Carbon_Foorprint/assets/44471488/670209e0-5927-41ca-8a1d-5ad4a63c27aa)
